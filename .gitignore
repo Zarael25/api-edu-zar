@@ -1,0 +1,42 @@
+# --------------------
+# Node / PNPM
+# --------------------
+node_modules/
+.pnpm-store/
+
+# --------------------
+# Build
+# --------------------
+dist/
+build/
+
+# --------------------
+# Environment
+# --------------------
+.env
+.env.local
+.env.development
+.env.production
+
+# --------------------
+# Logs
+# --------------------
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# --------------------
+# OS / Editor
+# --------------------
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# --------------------
+# Cache
+# --------------------
+.cache/
+.esbuild/
+mongo_data/
