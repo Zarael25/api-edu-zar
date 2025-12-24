@@ -1,10 +1,7 @@
-import express from 'express'
+import 'dotenv/config'           // 👈 ESTA LÍNEA ES CLAVE
 import { env } from './config/env'
 import { connectDB } from './database/connection'
-
-const app = express()
-
-app.use(express.json())
+import app from './app'
 
 const startServer = async () => {
   await connectDB()

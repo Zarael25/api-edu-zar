@@ -1,5 +1,3 @@
-import 'dotenv/config'
-
 const required = (key: string): string => {
   const value = process.env[key]
   if (!value) {
@@ -9,7 +7,10 @@ const required = (key: string): string => {
 }
 
 export const env = {
-  port: Number(required('PORT')),
+  port: required('PORT'),
   mongoUri: required('MONGO_URI'),
-  jwtSecret: required('JWT_SECRET'),
+
+  // 🔐 JWT (AUTH)
+  authJwtSecret: required('AUTH_JWT_SECRET'),
+  authJwtTime: required('AUTH_JWT_TIME'),
 }
