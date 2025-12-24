@@ -1,7 +1,15 @@
 import 'dotenv/config'
 
+const required = (key: string): string => {
+  const value = process.env[key]
+  if (!value) {
+    throw new Error(`❌ Variable de entorno faltante: ${key}`)
+  }
+  return value
+}
+
 export const env = {
-  port: Number(process.env.PORT) || 3000,
-  mongoUri: process.env.MONGO_URI || 'mongodb://localhost:27017/edu-zar',
-  jwtSecret: process.env.JWT_SECRET || 'dev-secret'
+  port: Number(required('PORT')),
+  mongoUri: required('MONGO_URI'),
+  jwtSecret: required('JWT_SECRET'),
 }

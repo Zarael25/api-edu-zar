@@ -1,8 +1,17 @@
-import 'dotenv/config'
-import app from './app'
+import express from 'express'
+import { env } from './config/env'
+import { connectDB } from './database/connection'
 
-const PORT = process.env.PORT || 3000
+const app = express()
 
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${PORT}`)
-})
+app.use(express.json())
+
+const startServer = async () => {
+  await connectDB()
+
+  app.listen(env.port, () => {
+    console.log(`Servidor corriendo en http://localhost:${env.port}`)
+  })
+}
+
+startServer()

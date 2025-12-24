@@ -4,7 +4,7 @@ import { errorHandler } from './middlewares/errorHandler'
 
 const app = express()
 
-// Middlewares básicos
+
 app.use(cors())
 app.use(express.json())
 
@@ -15,7 +15,7 @@ app.get('/', (_req, res) => {
   })
 })
 
-// Manejo de errores
+
 app.use(errorHandler)
 
 export default app
