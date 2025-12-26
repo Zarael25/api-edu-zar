@@ -25,7 +25,10 @@ export default class UsuarioRepository extends BaseRepository<UsuarioAttributes>
   public async getAuthByCarnet(
     carnet: string,
   ): Promise<UsuarioAttributes | null> {
-    return this.model.findOne({ carnet }).exec()
+    return this.model
+      .findOne({ carnet: carnet.trim() })
+      .select('+password')
+      .exec()
   }
 
   public async comparePassword(
