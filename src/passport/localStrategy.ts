@@ -14,8 +14,6 @@ const localStrategy = new Strategy(
     try {
       const repository = new UsuarioRepository()
       const usuarioFound = await repository.getAuthByCarnet(carnet)
-      console.log('Carnet recibido:', carnet)
-      console.log('Usuario encontrado:', usuarioFound)
       // 1. Validar existencia
       if (!usuarioFound || !usuarioFound.password) {
         throw new ApiError('Usuario o contraseña incorrectos.', 401)
