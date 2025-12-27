@@ -44,17 +44,28 @@ export const authUsuario = (
         },
         )
 
-        // (opcional) Header Authorization
-        res.setHeader('Authorization', `Bearer ${token}`)
+        // ===============================
+        // 🍪 Guardar token en cookie HttpOnly
+        // ===============================
+        res.cookie('token', token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 60 * 60 * 1000, // 1 hora
+        })
 
         // ===============================
-        // Respuesta
+        // Respuesta (NO enviar token)
         // ===============================
         return res.status(200).json({
           message: 'signin successfully',
-          token,
           usuario,
         })
+
+
+
+
+        
       } catch (err) {
         return next(err)
       }
@@ -83,3 +94,23 @@ export const getMe = [
     }
   },
 ]
+
+
+// ===============================
+// LOGOUT /auth/logout
+// ===============================
+export const logout = (
+  req: Request,
+  res: Response,
+) => {
+  // 🍪 Eliminar cookie del token
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+  })
+
+  return res.status(200).json({
+    message: 'logout successfully',
+  })
+}

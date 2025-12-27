@@ -1,22 +1,25 @@
-import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt'
+import { Strategy as JwtStrategy } from 'passport-jwt'
 
 import UsuarioRepository from '../repositories/UsuarioRepository'
 import { ApiError } from '../errors/ApiError'
-import { env } from '../config/env'   // 👈 USAMOS ENV CENTRALIZADO
+import { env } from '../config/env'
 
 type DoneCallback = (error: any, user?: any, info?: any) => void
 
+const cookieExtractor = (req: any) => {
+  if (req && req.cookies) {
+    return req.cookies.token
+  }
+  return null
+}
+
 const jwtStrategy = new JwtStrategy(
   {
-    // Extrae el token del header Authorization: Bearer <token>
-    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-
-    // 🔐 Secreto JWT desde config/env
+    jwtFromRequest: cookieExtractor, // 👈 CLAVE
     secretOrKey: env.authJwtSecret,
   },
   async (payload: any, done: DoneCallback) => {
     try {
-      // 1. Obtener el ID del usuario (sub es estándar JWT)
       const userId = payload.sub ?? payload.id
 
       if (!userId) {
@@ -26,7 +29,6 @@ const jwtStrategy = new JwtStrategy(
         )
       }
 
-      // 2. Buscar usuario en la BD
       const repository = new UsuarioRepository()
       const usuario = await repository.getById(userId)
 
@@ -37,7 +39,6 @@ const jwtStrategy = new JwtStrategy(
         )
       }
 
-      // 3. Usuario válido → se adjunta a req.user
       return done(null, usuario)
     } catch (error) {
       return done(error, false)
