@@ -3,7 +3,7 @@ import passport from 'passport'
 import jwt from 'jsonwebtoken'
 
 import UsuarioResource from '../../../resources/UsuarioResource'
-import { ApiError } from '../../../errors/ApiError'
+import  ApiError  from '../../../errors/ApiError'
 import { env } from '../../../config/env'   // 👈 CLAVE
 
 // ===============================
@@ -22,7 +22,12 @@ export const authUsuario = (
 
       try {
         if (!usuario) {
-          throw new ApiError('Usuario o contraseña incorrectos.', 401)
+          throw new ApiError({
+            name: 'UNAUTHORIZED_ERROR',
+            message: 'Usuario o contraseña incorrectos.',
+            code: 'ERR_UNAUTH',
+            status: 401,
+          })
         }
 
         // ===============================
@@ -81,7 +86,12 @@ export const getMe = [
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       if (!req.user) {
-        throw new ApiError('No autenticado.', 401)
+        throw new ApiError({
+          name: 'UNAUTHORIZED_ERROR',
+          message: 'No autenticado.',
+          code: 'ERR_UNAUTH',
+          status: 401,
+        })
       }
 
       const usuarioResource = new UsuarioResource(req.user as any)

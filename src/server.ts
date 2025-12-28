@@ -1,4 +1,4 @@
-import 'dotenv/config'           // 👈 ESTA LÍNEA ES CLAVE
+import 'dotenv/config'           // 👈 carga .env
 import { env } from './config/env'
 import { connectDB } from './database/connection'
 import app from './app'
@@ -6,8 +6,10 @@ import app from './app'
 const startServer = async () => {
   await connectDB()
 
-  app.listen(env.port, () => {
-    console.log(`Servidor corriendo en http://localhost:${env.port}`)
+  const PORT = env.port || 3000   // 👈 fallback seguro
+
+  app.listen(PORT, () => {
+    console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`)
   })
 }
 

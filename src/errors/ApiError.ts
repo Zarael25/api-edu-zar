@@ -1,8 +1,6 @@
-export class ApiError extends Error {
-  statusCode: number
+import BaseError from './BaseError'
+import type { ErrorName, ErrorCode } from '../types'
 
-  constructor(message: string, statusCode = 400) {
-    super(message)
-    this.statusCode = statusCode
-  }
-}
+// Clase ApiError que extiende de BaseError
+class ApiError extends BaseError<ErrorName, ErrorCode> {}
+export default ApiError

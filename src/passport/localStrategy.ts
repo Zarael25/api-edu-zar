@@ -2,7 +2,7 @@ import { Strategy } from 'passport-local'
 
 import UsuarioRepository from '../repositories/UsuarioRepository'
 import UsuarioResource from '../resources/UsuarioResource'
-import { ApiError } from '../errors/ApiError'
+import ApiError from '../errors/ApiError'
 
 const localStrategy = new Strategy(
   {
@@ -14,24 +14,40 @@ const localStrategy = new Strategy(
     try {
       const repository = new UsuarioRepository()
       const usuarioFound = await repository.getAuthByCarnet(carnet)
+
       // 1. Validar existencia
       if (!usuarioFound || !usuarioFound.password) {
-        throw new ApiError('Usuario o contraseña incorrectos.', 401)
+        throw new ApiError({
+          name: 'UNAUTHORIZED_ERROR',
+          message: 'Usuario o contraseña incorrectos.',
+          code: 'ERR_UNAUTH',
+          status: 401,
+        })
       }
 
       // 2. Validar estado
       if (usuarioFound.estado !== 'ACTIVE') {
-        throw new ApiError('Usuario inactivo o bloqueado.', 423)
+        throw new ApiError({
+          name: 'FORBIDDEN_ERROR',
+          message: 'Usuario inactivo o bloqueado.',
+          code: 'ERR_FORB',
+          status: 423,
+        })
       }
 
       // 3. Validar roles permitidos
-      const rolesPermitidos = ['admin', 'administracion', 'director', 'enfermeria']
+      const rolesPermitidos = ['admin', 'administracion', 'director', 'enfermeria','profesor']
       const tienePermiso = usuarioFound.roles?.some((rol: string) =>
         rolesPermitidos.includes(rol),
       )
 
       if (!tienePermiso) {
-        throw new ApiError('Rol no autorizado para iniciar sesión.', 403)
+        throw new ApiError({
+          name: 'FORBIDDEN_ERROR',
+          message: 'Rol no autorizado para iniciar sesión.',
+          code: 'ERR_FORB',
+          status: 403,
+        })
       }
 
       // 4. Validar contraseña
@@ -41,7 +57,12 @@ const localStrategy = new Strategy(
       )
 
       if (!matchPassword) {
-        throw new ApiError('Usuario o contraseña incorrectos.', 401)
+        throw new ApiError({
+          name: 'UNAUTHORIZED_ERROR',
+          message: 'Usuario o contraseña incorrectos.',
+          code: 'ERR_UNAUTH',
+          status: 401,
+        })
       }
 
       // 5. Usuario seguro

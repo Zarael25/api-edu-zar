@@ -1,3 +1,4 @@
+import 'dotenv/config' 
 import { connectDB } from '../src/database/connection'
 import bcrypt from 'bcryptjs'
 import inquirer from 'inquirer'

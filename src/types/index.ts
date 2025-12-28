@@ -1,0 +1,19 @@
+export type ErrorName =
+  | 'VALIDATION_ERROR'
+  | 'UNAUTHORIZED_ERROR'
+  | 'FORBIDDEN_ERROR'
+  | 'NOT_FOUND_ERROR'
+  | 'CONFLICT_ERROR'
+  | 'INTERNAL_ERROR'
+  | 'NO_TOKEN_PROVIDED'
+  | 'TOKEN_EXPIRED_ERROR'
+
+export type ErrorCode =
+  | 'ERR_VALID'
+  | 'ERR_UNAUTH'
+  | 'ERR_FORB'
+  | 'ERR_NF'
+  | 'ERR_CONFLICT'
+  | 'ERR_INTERNAL'
+  | 'ERR_NT'
+  | 'ERR_TE'

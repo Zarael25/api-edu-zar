@@ -7,7 +7,10 @@ const required = (key: string): string => {
 }
 
 export const env = {
-  port: required('PORT'),
+  // 🚀 SOLO necesario cuando levantas el servidor
+  port: process.env.PORT,
+
+  // 🗄️ Base de datos (SIEMPRE necesario)
   mongoUri: required('MONGO_URI'),
 
   // 🔐 JWT (AUTH)

@@ -1,7 +1,7 @@
 import { Strategy as JwtStrategy } from 'passport-jwt'
 
 import UsuarioRepository from '../repositories/UsuarioRepository'
-import { ApiError } from '../errors/ApiError'
+import ApiError from '../errors/ApiError'
 import { env } from '../config/env'
 
 type DoneCallback = (error: any, user?: any, info?: any) => void
@@ -15,7 +15,7 @@ const cookieExtractor = (req: any) => {
 
 const jwtStrategy = new JwtStrategy(
   {
-    jwtFromRequest: cookieExtractor, // 👈 CLAVE
+    jwtFromRequest: cookieExtractor,
     secretOrKey: env.authJwtSecret,
   },
   async (payload: any, done: DoneCallback) => {
@@ -24,8 +24,13 @@ const jwtStrategy = new JwtStrategy(
 
       if (!userId) {
         return done(
-          new ApiError('Token inválido: usuario no identificado.', 401),
-          false,
+          new ApiError({
+            name: 'UNAUTHORIZED_ERROR',
+            message: 'Token inválido: usuario no identificado.',
+            code: 'ERR_UNAUTH',
+            status: 401,
+          }),
+          false
         )
       }
 
@@ -34,8 +39,13 @@ const jwtStrategy = new JwtStrategy(
 
       if (!usuario) {
         return done(
-          new ApiError('Usuario no encontrado.', 401),
-          false,
+          new ApiError({
+            name: 'UNAUTHORIZED_ERROR',
+            message: 'Usuario no encontrado.',
+            code: 'ERR_UNAUTH',
+            status: 401,
+          }),
+          false
         )
       }
 
@@ -43,7 +53,7 @@ const jwtStrategy = new JwtStrategy(
     } catch (error) {
       return done(error, false)
     }
-  },
+  }
 )
 
 export default jwtStrategy
