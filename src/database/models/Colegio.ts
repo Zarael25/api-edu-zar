@@ -1,17 +1,11 @@
 import { Schema, model, Document, Types } from 'mongoose'
 
-/* =======================
-   NIVELES EDUCATIVOS
-======================= */
 export const NIVELES = ['PM', 'PT', 'SM', 'ST'] as const
 
-/* =======================
-   ENTITY
-======================= */
 export type ColegioEntity = {
   id?: string | any
 
-  user: Types.ObjectId
+  usuarios: Types.ObjectId[]   // 👈 aquí el cambio clave
   nombre_colegio: string
   niveles: string[]
   estado: string
@@ -20,23 +14,19 @@ export type ColegioEntity = {
   updatedAt?: Date
 }
 
-/* =======================
-   DOCUMENT
-======================= */
 export interface ColegioAttributes
   extends ColegioEntity,
     Document {}
 
-/* =======================
-   SCHEMA
-======================= */
 const ColegioSchema = new Schema<ColegioAttributes>(
   {
-    user: {
-      type: Schema.Types.ObjectId,
-      ref: 'Usuario',
-      required: true,
-    },
+    usuarios: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Usuario',
+        required: true,
+      },
+    ],
 
     nombre_colegio: {
       type: String,
@@ -69,7 +59,4 @@ const ColegioSchema = new Schema<ColegioAttributes>(
   },
 )
 
-/* =======================
-   MODEL EXPORT
-======================= */
 export default model<ColegioAttributes>('Colegio', ColegioSchema)
