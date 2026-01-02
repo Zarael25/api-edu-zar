@@ -188,3 +188,112 @@ export const getColegioById = async (
     next(err)
   }
 }
+
+
+
+// ===============================
+// EDITAR COLEGIO
+// PATCH /v1/colegios/:id
+// ===============================
+export const editarColegio = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = req.user
+
+    if (!user) {
+      throw new ApiError({
+        name: 'UNAUTHORIZED_ERROR',
+        message: 'No autorizado',
+        code: 'ERR_UNAUTH',
+        status: 401,
+      })
+    }
+
+    const { id } = req.params
+    const { nombre_colegio, niveles } = req.body
+
+    // ===============================
+    // Validar ID
+    // ===============================
+    if (!Types.ObjectId.isValid(id)) {
+      throw new ApiError({
+        name: 'VALIDATION_ERROR',
+        message: 'ID de colegio inválido',
+        code: 'ERR_VALID',
+        status: 400,
+      })
+    }
+
+    // ===============================
+    // Al menos un campo a actualizar
+    // ===============================
+    if (!nombre_colegio && !niveles) {
+      throw new ApiError({
+        name: 'VALIDATION_ERROR',
+        message: 'No hay datos para actualizar',
+        code: 'ERR_VALID',
+        status: 400,
+      })
+    }
+
+    const userId = new Types.ObjectId(user.id)
+
+    // ===============================
+    // Verificar acceso al colegio
+    // ===============================
+    const colegio = await Colegio.findOne({
+      _id: id,
+      usuarios: userId,
+      estado: 'ACTIVO',
+    })
+
+    if (!colegio) {
+      throw new ApiError({
+        name: 'NOT_FOUND_ERROR',
+        message: 'Colegio no encontrado o sin acceso',
+        code: 'ERR_NF',
+        status: 404,
+      })
+    }
+
+    // ===============================
+    // Validar nombre duplicado (si cambia)
+    // ===============================
+    if (nombre_colegio) {
+      const existe = await Colegio.findOne({
+        _id: { $ne: id },
+        nombre_colegio: nombre_colegio.toUpperCase(),
+      })
+
+      if (existe) {
+        throw new ApiError({
+          name: 'CONFLICT_ERROR',
+          message: 'Ya existe un colegio con ese nombre',
+          code: 'ERR_CONFLICT',
+          status: 409,
+        })
+      }
+
+      colegio.nombre_colegio = nombre_colegio
+    }
+
+    // ===============================
+    // Actualizar niveles
+    // ===============================
+    if (niveles) {
+      colegio.niveles = niveles
+    }
+
+    await colegio.save()
+
+    return res.json({
+      message: 'Colegio actualizado correctamente',
+      data: colegio,
+    })
+  } catch (err) {
+    next(err)
+  }
+}

@@ -5,6 +5,7 @@ import {
   crearColegio,
   getMisColegios,
   getColegioById,
+  editarColegio,
 } from './controller'
 
 import { authorizeRoles } from '../../../middlewares/authorizeRoles'
@@ -27,5 +28,10 @@ colegios.post('/', crearColegio)
 
 // ------------------ Obtener colegio por ID ------------------
 colegios.get('/:id', getColegioById)
+
+// ------------------ Editar colegio ------------------
+colegios.patch('/:id', editarColegio)
+
+
 
 export default colegios
