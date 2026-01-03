@@ -31,6 +31,7 @@ export const crearEstudiante = async (
       colegio,
       nombres,
       apellidos,
+      carnet,
       password,
       gestion,
       curso,
@@ -42,6 +43,7 @@ export const crearEstudiante = async (
       !colegio ||
       !nombres ||
       !apellidos ||
+      !carnet ||
       !password ||
       !gestion ||
       !curso ||
@@ -77,11 +79,10 @@ export const crearEstudiante = async (
 
     // ---------------- EVITAR DUPLICADOS ----------------
     const existeEstudiante = await Estudiante.findOne({
-      nombres: nombres.toUpperCase(),
-      apellidos: apellidos.toUpperCase(),
+      carnet: carnet.toUpperCase(),
       colegio,
-      gestion,
     })
+
 
     if (existeEstudiante) {
       throw new ApiError({
@@ -100,6 +101,7 @@ export const crearEstudiante = async (
       colegio,
       nombres,
       apellidos,
+      carnet,
       password: passwordHash,
       gestion,
       curso,
@@ -192,8 +194,6 @@ export const getEstudianteById = async (
     next(err)
   }
 }
-
-
 export const importarEstudiantes = async (
   req: Request,
   res: Response,
@@ -222,10 +222,40 @@ export const importarEstudiantes = async (
       })
     }
 
+    // ---------------- OBTENER COLEGIO ----------------
+    const colegioDB = await Colegio.findById(colegio).lean()
+    if (!colegioDB) {
+      throw new ApiError({
+        name: 'NOT_FOUND_ERROR',
+        message: 'Colegio no encontrado',
+        code: 'ERR_NF',
+        status: 404,
+      })
+    }
+
+    const siglaColegio = colegioDB.sigla?.toUpperCase()
+
     // ---------------- LEER EXCEL ----------------
     const workbook = XLSX.read(file.buffer, { type: 'buffer' })
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
-    const rows: any[] = XLSX.utils.sheet_to_json(sheet)
+
+    // 👉 SIGLA VIENE DE B1
+    const siglaExcel = sheet['B1']?.v?.toString().trim().toUpperCase()
+
+    if (!siglaExcel || siglaExcel !== siglaColegio) {
+      throw new ApiError({
+        name: 'VALIDATION_ERROR',
+        message:
+          'La sigla del Excel no coincide con el colegio seleccionado',
+        code: 'ERR_SIGLA',
+        status: 400,
+      })
+    }
+
+    // 👉 HEADERS ESTÁN EN LA FILA 2
+    const rows: any[] = XLSX.utils.sheet_to_json(sheet, {
+      range: 1, // ignora fila 1
+    })
 
     let creados = 0
     let duplicados = 0
@@ -235,18 +265,17 @@ export const importarEstudiantes = async (
       const {
         apellidos,
         nombres,
-        password,
+        carnet,
         gestion,
         curso,
         nivel,
       } = row
 
-      // nro se ignora (solo referencia visual)
-
+      // ---------------- VALIDACIÓN DE FILA ----------------
       if (
         !apellidos ||
         !nombres ||
-        !password ||
+        !carnet ||
         !gestion ||
         !curso ||
         !nivel
@@ -255,11 +284,12 @@ export const importarEstudiantes = async (
         continue
       }
 
+      const carnetNormalizado = carnet.toString().trim().toUpperCase()
+
+      // ---------------- EVITAR DUPLICADOS ----------------
       const existe = await Estudiante.findOne({
-        apellidos: apellidos.toUpperCase(),
-        nombres: nombres.toUpperCase(),
+        carnet: carnetNormalizado,
         colegio,
-        gestion,
       })
 
       if (existe) {
@@ -267,13 +297,16 @@ export const importarEstudiantes = async (
         continue
       }
 
-      const hash = await bcrypt.hash(password.toString(), 10)
+      // ---------------- PASSWORD = CARNET ----------------
+      const passwordHash = await bcrypt.hash(carnetNormalizado, 10)
 
+      // ---------------- CREAR ESTUDIANTE ----------------
       await Estudiante.create({
         colegio,
+        carnet: carnetNormalizado,
         apellidos,
         nombres,
-        password: hash,
+        password: passwordHash,
         gestion,
         curso,
         nivel,

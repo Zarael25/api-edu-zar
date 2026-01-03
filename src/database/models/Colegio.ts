@@ -7,7 +7,13 @@ export type ColegioEntity = {
 
   usuarios: Types.ObjectId[]   // 👈 aquí el cambio clave
   nombre_colegio: string
+  sigla?: string
   niveles: string[]
+  ubicacion?: {
+    departamento?: string
+    provincia?: string
+    ciudad?: string
+  }
   estado: string
 
   createdAt?: Date
@@ -20,19 +26,26 @@ export interface ColegioAttributes
 
 const ColegioSchema = new Schema<ColegioAttributes>(
   {
-    usuarios: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: 'Usuario',
-        required: true,
-      },
-    ],
+    usuarios: {
+      type: [Schema.Types.ObjectId],
+      ref: 'Usuario',
+      default: [],
+    },
 
     nombre_colegio: {
       type: String,
       uppercase: true,
       trim: true,
       required: true,
+    },
+
+
+    sigla: {
+      type: String,
+      uppercase: true,
+      trim: true,
+      minlength: 2,
+      maxlength: 10,
     },
 
     niveles: [
@@ -44,6 +57,35 @@ const ColegioSchema = new Schema<ColegioAttributes>(
         required: true,
       },
     ],
+
+    ubicacion: {
+      departamento: {
+        type: String,
+        uppercase: true,
+        trim: true,
+      },
+      provincia: {
+        type: String,
+        uppercase: true,
+        trim: true,
+      },
+      ciudad: {
+        type: String,
+        uppercase: true,
+        trim: true,
+      },
+    },
+
+
+
+
+
+
+
+
+
+
+
 
     estado: {
       type: String,

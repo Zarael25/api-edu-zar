@@ -36,7 +36,12 @@ export const crearColegio = async (
     // ===============================
     // Datos enviados desde el frontend
     // ===============================
-    const { nombre_colegio, niveles } = req.body
+    const {
+      nombre_colegio,
+      sigla,
+      niveles,
+      ubicacion,
+    } = req.body
 
     // Validación básica de campos obligatorios
     if (!nombre_colegio || !niveles?.length) {
@@ -47,6 +52,27 @@ export const crearColegio = async (
         status: 400,
       })
     }
+
+
+    if (sigla && typeof sigla !== 'string') {
+          throw new ApiError({
+            name: 'VALIDATION_ERROR',
+            message: 'Sigla inválida',
+            code: 'ERR_VALID',
+            status: 400,
+          })
+        }
+
+        if (ubicacion && typeof ubicacion !== 'object') {
+          throw new ApiError({
+            name: 'VALIDATION_ERROR',
+            message: 'Ubicación inválida',
+            code: 'ERR_VALID',
+            status: 400,
+          })
+        }
+
+
 
     // ===============================
     // Verificar si ya existe un colegio
@@ -65,6 +91,32 @@ export const crearColegio = async (
       })
     }
 
+
+
+    // ===============================
+    // Sigla duplicada (si viene)
+    // ===============================
+    if (sigla) {
+      const existeSigla = await Colegio.findOne({
+        sigla: sigla.toUpperCase(),
+      })
+
+      if (existeSigla) {
+        throw new ApiError({
+          name: 'CONFLICT_ERROR',
+          message: 'Ya existe un colegio con esa sigla',
+          code: 'ERR_CONFLICT',
+          status: 409,
+        })
+      }
+    }
+
+
+
+
+
+
+
     // ===============================
     // Convertir ID del usuario a ObjectId
     // (JWT → string → ObjectId)
@@ -79,6 +131,8 @@ export const crearColegio = async (
     const colegio = await Colegio.create({
       usuarios: [userId],        // usuario creador
       nombre_colegio,
+      sigla,
+      ubicacion,
       niveles,
       estado: 'ACTIVO',
     })
@@ -213,11 +267,8 @@ export const editarColegio = async (
     }
 
     const { id } = req.params
-    const { nombre_colegio, niveles } = req.body
+    const { nombre_colegio, sigla, niveles, ubicacion } = req.body
 
-    // ===============================
-    // Validar ID
-    // ===============================
     if (!Types.ObjectId.isValid(id)) {
       throw new ApiError({
         name: 'VALIDATION_ERROR',
@@ -227,10 +278,7 @@ export const editarColegio = async (
       })
     }
 
-    // ===============================
-    // Al menos un campo a actualizar
-    // ===============================
-    if (!nombre_colegio && !niveles) {
+    if (!nombre_colegio && !sigla && !niveles && !ubicacion) {
       throw new ApiError({
         name: 'VALIDATION_ERROR',
         message: 'No hay datos para actualizar',
@@ -241,9 +289,6 @@ export const editarColegio = async (
 
     const userId = new Types.ObjectId(user.id)
 
-    // ===============================
-    // Verificar acceso al colegio
-    // ===============================
     const colegio = await Colegio.findOne({
       _id: id,
       usuarios: userId,
@@ -259,9 +304,7 @@ export const editarColegio = async (
       })
     }
 
-    // ===============================
-    // Validar nombre duplicado (si cambia)
-    // ===============================
+    // 🔁 Nombre duplicado
     if (nombre_colegio) {
       const existe = await Colegio.findOne({
         _id: { $ne: id },
@@ -280,11 +323,42 @@ export const editarColegio = async (
       colegio.nombre_colegio = nombre_colegio
     }
 
-    // ===============================
-    // Actualizar niveles
-    // ===============================
+    // 🔁 Sigla duplicada
+    if (sigla) {
+      const existeSigla = await Colegio.findOne({
+        _id: { $ne: id },
+        sigla: sigla.toUpperCase(),
+      })
+
+      if (existeSigla) {
+        throw new ApiError({
+          name: 'CONFLICT_ERROR',
+          message: 'Ya existe un colegio con esa sigla',
+          code: 'ERR_CONFLICT',
+          status: 409,
+        })
+      }
+
+      colegio.sigla = sigla
+    }
+
+    // 🔁 Niveles
     if (niveles) {
       colegio.niveles = niveles
+    }
+
+    // 🔁 Ubicación
+    if (ubicacion) {
+      if (typeof ubicacion !== 'object') {
+        throw new ApiError({
+          name: 'VALIDATION_ERROR',
+          message: 'Ubicación inválida',
+          code: 'ERR_VALID',
+          status: 400,
+        })
+      }
+
+      colegio.ubicacion = ubicacion
     }
 
     await colegio.save()

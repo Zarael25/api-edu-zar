@@ -15,6 +15,7 @@ export type EstudianteEntity = {
 
   nombres: string
   apellidos: string
+  carnet: string
   password: string
 
   gestion: number
@@ -57,6 +58,14 @@ const EstudianteSchema = new Schema<EstudianteAttributes>(
       uppercase: true,
       required: true,
     },
+
+    carnet: {
+      type: String,
+      required: true,
+      trim: true,
+      uppercase: true,
+    },
+
 
     password: {
       type: String,
@@ -103,9 +112,10 @@ const EstudianteSchema = new Schema<EstudianteAttributes>(
 ======================= */
 // Un estudiante no puede repetirse en la misma gestión
 EstudianteSchema.index(
-  { nombres: 1, apellidos: 1, colegio: 1, gestion: 1 },
+  { carnet: 1, colegio: 1 },
   { unique: true },
 )
+
 
 /* =======================
    MODEL EXPORT

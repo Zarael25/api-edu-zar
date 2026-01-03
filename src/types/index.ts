@@ -17,3 +17,4 @@ export type ErrorCode =
   | 'ERR_INTERNAL'
   | 'ERR_NT'
   | 'ERR_TE'
+  | 'ERR_SIGLA'
