@@ -29,8 +29,7 @@ export type LibretaNotasEntity = {
   id?: string | any
 
   estudiante: Types.ObjectId
-  nombre_materia: string
-  sigla: string
+  materia: Types.ObjectId
   gestion: number
 
   trimestres?: TrimestreEntity[]
@@ -128,17 +127,9 @@ const LibretaNotasSchema = new Schema<LibretaNotasAttributes>(
       required: true,
     },
 
-    nombre_materia: {
-      type: String,
-      uppercase: true,
-      trim: true,
-      required: true,
-    },
-
-    sigla: {
-      type: String,
-      uppercase: true,
-      trim: true,
+    materia: {
+      type: Schema.Types.ObjectId,
+      ref: 'Materia',
       required: true,
     },
 
@@ -157,16 +148,17 @@ const LibretaNotasSchema = new Schema<LibretaNotasAttributes>(
   {
     timestamps: true,
     versionKey: false,
-  },
+  }
 )
+
 
 /* =======================
    ÍNDICES CLAVE
 ======================= */
 // Una libreta por estudiante + materia + gestión
 LibretaNotasSchema.index(
-  { estudiante: 1, nombre_materia: 1, gestion: 1 },
-  { unique: true },
+  { estudiante: 1, materia: 1, gestion: 1 },
+  { unique: true }
 )
 
 /* =======================

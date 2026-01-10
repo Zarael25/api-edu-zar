@@ -8,13 +8,6 @@ import ApiError from '../../../errors/ApiError'
 
 import XLSX from 'xlsx'
 
-
-
-
-
-
-
-
 /* ======================================================
    CREAR ESTUDIANTE
    POST /v1/estudiantes
@@ -117,7 +110,10 @@ export const crearEstudiante = async (
 /* ======================================================
    LISTAR ESTUDIANTES
    GET /v1/estudiantes
-   - Opcional: ?colegio=ID
+   - Filtros opcionales:
+     ?colegio=ID
+     ?nivel=SM
+     ?curso=2A
 ====================================================== */
 export const getEstudiantes = async (
   req: Request,
@@ -125,10 +121,13 @@ export const getEstudiantes = async (
   next: NextFunction
 ) => {
   try {
-    const { colegio } = req.query
+    const { colegio, nivel, curso } = req.query
 
-    const filter: any = { estado: 'ACTIVO' }
+    const filter: any = {
+      estado: 'ACTIVO',
+    }
 
+    // ---------------- VALIDAR COLEGIO ----------------
     if (colegio) {
       if (!Types.ObjectId.isValid(colegio as string)) {
         throw new ApiError({
@@ -142,8 +141,19 @@ export const getEstudiantes = async (
       filter.colegio = colegio
     }
 
+    // ---------------- FILTRO NIVEL ----------------
+    if (nivel) {
+      filter.nivel = nivel
+    }
+
+    // ---------------- FILTRO CURSO ----------------
+    if (curso) {
+      filter.curso = curso
+    }
+
     const estudiantes = await Estudiante.find(filter)
-      .populate('colegio', 'nombre_colegio')
+      .populate('colegio', 'nombre_colegio sigla')
+      .sort({ apellidos: 1, nombres: 1 })
       .lean()
 
     return res.json({
@@ -154,6 +164,7 @@ export const getEstudiantes = async (
     next(err)
   }
 }
+
 
 /* ======================================================
    OBTENER ESTUDIANTE POR ID
@@ -325,6 +336,49 @@ export const importarEstudiantes = async (
       creados,
       duplicados,
       omitidos,
+    })
+  } catch (err) {
+    next(err)
+  }
+}
+
+
+/* ======================================================
+   OBTENER CURSOS EXISTENTES POR COLEGIO Y NIVEL
+   GET /v1/estudiantes/cursos
+====================================================== */
+export const getCursosByColegio = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { colegio, nivel } = req.query
+
+    // Validar colegio
+    if (!colegio || !Types.ObjectId.isValid(colegio as string)) {
+      throw new ApiError({
+        name: 'VALIDATION_ERROR',
+        message: 'ID de colegio inválido',
+        code: 'ERR_VALID',
+        status: 400,
+      })
+    }
+
+    const filter: any = {
+      colegio,
+      estado: 'ACTIVO',
+    }
+
+    if (nivel) {
+      filter.nivel = nivel
+    }
+
+    const cursos = await Estudiante.distinct('curso', filter)
+
+    return res.json({
+      count: cursos.length,
+      data: cursos.sort(),
     })
   } catch (err) {
     next(err)

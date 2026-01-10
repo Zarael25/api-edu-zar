@@ -6,7 +6,8 @@ import {
   crearEstudiante,
   getEstudiantes,
   getEstudianteById,
-  importarEstudiantes
+  importarEstudiantes,
+  getCursosByColegio,
 } from './controller'
 
 import { authorizeRoles } from '../../../middlewares/authorizeRoles'
@@ -18,6 +19,12 @@ estudiantes.use(
   passport.authenticate('jwt', { session: false }),
   authorizeRoles('admin')
 )
+
+
+// ------------------ Cursos por colegio y nivel ------------------
+// GET /v1/estudiantes/cursos?colegio=ID&nivel=SM
+estudiantes.get('/cursos', getCursosByColegio)
+
 
 // ------------------ Listar estudiantes ------------------
 estudiantes.get('/', getEstudiantes)
